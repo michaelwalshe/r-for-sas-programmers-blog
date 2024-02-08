@@ -1,0 +1,11 @@
+---
+title: test
+format: html
+---
+
+Testing testing
+
+```{r}
+# Call an object that doesn't exist
+this_does_not_exist
+```
