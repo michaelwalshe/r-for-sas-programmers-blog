@@ -39,8 +39,9 @@ Are you a SAS programmer picking up R? Have you struggled with missing values, o
 If you're familiar with SAS, you know that it's an excellent language for high-performance analytics. However, many industries are exploring R alongside SAS for its open-source flexibility and expansive community, building on their existing statistical know-how. So for SAS veterans looking to add another weapon to their analytical arsenal, today we're going to teach you how to navigate the world of R - highlighting the similarities, smoothing out the bumps, and you'll be a practiced "useR" before you know it! 
 
 
-One thing to note is what I will *not* cover - this will not be a complete introduction to R! What I'm going to give is an overview of R for the SAS programmer. For a detailed introduction to R from the fundamentals up, take a look at our [R courses](https://katalyzedata.com/courses/r-training/). If you're looking for a course aimed at SAS programmers, then make an enquiry [here](https://katalyzedata.com/training/learn-r-for-sas-programmers/).
+One thing to note here is what we will *not* cover - this will not be a complete introduction to R! What I'm going to give is an overview of R for the SAS programmer. For a detailed introduction to R from the fundamentals up, take a look at our [R courses](https://katalyzedata.com/courses/r-training/). If you're looking for a course aimed at SAS programmers, then make an enquiry [here](https://katalyzedata.com/training/learn-r-for-sas-programmers/).
 
+# A Brief History of R
 
 R first appeared on the scene in 1993, although the syntax and style is heavily inspired by a predecessor S - developed by Bell Labs in 1976. It was started by two professors at the University of Auckland, to aid in using and teaching statistics. This has led to a common phrase: that R is "for statisticians, by statisticians". Since then, there have been several major milestones:
 
@@ -66,8 +67,7 @@ head(demog)
 
 -   **Using SAS:**
 
-```{r SAS_example}
-#| eval: false
+```default
 %let rc = %sysfunc(dlgcdir(%nrstr(%%USERPROFILE%%)\source\katalyze-data\content\r-for-sas-programmers-blog));
 
 proc import file="data/demog.csv" out=work.demog replace;  # <1>
@@ -85,7 +85,7 @@ proc corr data=demog2;                                      # <4>
 run;
 ```
 1.  Read in our CSV using the `import` procedure, and save it to a dataset called `demog`.
-2.  Use a data step to edit our dataset, first filtering to just observations where gender is equal to `"M"` and only keeping the variables `height`, `salary`, and `weight` on the input.
+2.  Use a data step to edit our dataset, first filtering to just observations where gender is equal to `"M"` and only keeping the variables `height`, `salary`, `weight`, and `gender` on the input.
 3.  Calculate our new `BMI` column, using an intermediate `height_m` column.
 4.  Compute the correlation between `BMI` and `salary`, using the `corr` procedure.
 
@@ -152,20 +152,21 @@ library(readr)  # For better file reading
 library(dplyr)  # For better data wrangling
 
 result <- 
-  read_csv("data/demog.csv") |>             # <1>
-  filter(gender == "M") |>                  # <2>
-  select(height, weight, salary) |>         # <3>
-  mutate(height_m = (height * 2.54) / 100,  # <4> 
+  read_csv("data/demog.csv") |>
+  filter(gender == "M") |>
+  select(height, weight, salary) |>
+  mutate(height_m = (height * 2.54) / 100,
          bmi = weight / (height_m **2)) |> 
-  cor.test(~ bmi + salary,                  # <5>
+  cor.test(~ bmi + salary,
            data = _,
-           na.action = "na.omit") 
+           na.action = "na.omit")
 ```
-1.  Read in our data using `read_csv` from [`{readr}`](https://readr.tidyverse.org/). This is similar to the base R function `read.csv`, but is faster and with better defaults. We then "pipe" the output of this function in to the next line using `|>`, this is a base R feature to make code calling several functions in a row more readable. Otherwise, this would look something like: `mutate(filter(select(read_csv("file"), ...), ...), ...)`. Much nicer with pipes!
-2.  Filter the data using the `filter` function from [`{dplyr}`](https://dplyr.tidyverse.org/). This is similar to indexing with square brackets, but is more readable and user-friendly.
-3.  Choose just a couple of columns using the `select` function from `{dplyr}`. This is equivalent to the second half of our base R indexing.
-4.  Add new columns using the `mutate` function from `{dplyr}`. This is a very powerful function, with a lot more functionality via additional `{dplyr}` functions.
-5.  Again use the `cor.test` function, though note that to specify the `data` argument we use an underscore to indicate that the pipe should insert the previous result at this place in the function.
+
+I won't go through this line-by-line, but we've achieved the same result as before, this time writing `{tidyverse}` style code. This style is characterised by a few key features:
+
+-   Using the pipe operator `|>` to chain together functions, making the code more readable and easier to follow. Otherwise, this would look something like: `mutate(filter(select(read_csv("file"), ...), ...), ...)`.
+-   Using functions with a consistent naming style, and consistent arguments. This makes it easier to remember how to use functions, and to learn new ones.
+-   Using lazy evaluation, which is a way of referring to columns without putting them in quotes (i.e. `"height"`) or using the `$` operator
 
 These functions may seem familiar to those of you used to SQL (available through PROC SQL in SAS). This is no coincidence, the `{dplyr}` package was partially inspired by SQL, and is a great way to do data wrangling in R. Our output is the same as before, just produced in a (in my opinion) more readable way.
 
@@ -186,8 +187,7 @@ ggplot(demog, aes(height, weight, colour=gender, fill=gender)) +
 
 If we wanted to create a similar output in SAS, we could do:
 
-```{r SAS_plotting}
-#| eval: false
+```default
 proc sgplot data=demog;
     scatter x=height y=weight / group=gender;
     reg x=height y=weight / group=gender clm;
